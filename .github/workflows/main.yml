@@ -14,9 +14,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci_part:
+  check_secrets:
     runs-on: ubuntu-latest
 
+    steps:
+      - name: Check AWS_ACCESS_KEY
+        run: if ${{ secrets.AWS_ACCESS_KEY }}; then echo 'Please set AWS_ACCESS_KEY as a secret'; else echo 'AWS_ACCESS_KEY found'; fi
+
+      - name: Check AWS_SECRET_KEY
+        run: if ${{ secrets.AWS_SECRET_KEY }}; then echo 'Please set AWS_SECRET_KEY as a secret'; else echo 'AWS_SECRET_KEY found'; fi
+
+  ci_part:
+    runs-on: ubuntu-latest
+    needs: [check_secrets]
     steps:
       - name: Git clone
         uses: actions/checkout@v2
@@ -37,19 +47,9 @@ jobs:
       - name: CI finish
         run: echo "CI Pipeline part Finished successfully!"
 
-  check_secrets:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check AWS_ACCESS_KEY
-        run: if ${{ secrets.AWS_ACCESS_KEY }}; then echo 'Please set AWS_ACCESS_KEY as a secret'; else echo 'AWS_ACCESS_KEY found'; fi
-
-      - name: Check AWS_SECRET_KEY
-        run: if ${{ secrets.AWS_SECRET_KEY }}; then echo 'Please set AWS_SECRET_KEY as a secret'; else echo 'AWS_SECRET_KEY found'; fi
-
   cd_part:
     runs-on: ubuntu-latest
-    needs: [ci_part, check_secrets]
+    needs: [ci_part]
     steps:
       - name: Configure my AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
