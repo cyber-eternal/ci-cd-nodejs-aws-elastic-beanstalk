@@ -1,11 +1,11 @@
 name: CI-CD-Pipeline-to-AWS-ElasticBeastalk
 
 env:
-  S3_BUCKET_NAME            : "cyber-eternal-nodejs-servers"
-  EB_APPLICATION_NAME       : "SimpleNodejsServer"
-  EB_ENVIRONMENT_NAME       : "Simplenodejsserver-env"
-  DEPLOY_PACKAGE_NAME       : "simple_nodejs_server_${{ github.sha }}.zip"
-  AWS_REGION_NAME           : "us-east-1"
+  S3_BUCKET_NAME      : "cyber-eternal-nodejs-servers"
+  EB_APPLICATION_NAME : "SimpleNodejsServer"
+  EB_ENVIRONMENT_NAME : "Simplenodejsserver-env"
+  DEPLOY_PACKAGE_NAME : "simple_nodejs_server_${{ github.sha }}.zip"
+  AWS_REGION_NAME     : "us-east-1"
 
 
 on:
