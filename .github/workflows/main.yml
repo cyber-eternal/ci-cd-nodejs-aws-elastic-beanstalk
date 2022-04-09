@@ -19,10 +19,10 @@ jobs:
 
     steps:
       - name: Check AWS_ACCESS_KEY
-        run: if ${{ secrets.AWS_ACCESS_KEY }}; then echo 'Please set AWS_ACCESS_KEY as a secret'; else echo 'AWS_ACCESS_KEY found'; fi
+        run: if [ ${{ secrets.AWS_ACCESS_KEY }} ]; then echo 'Please set AWS_ACCESS_KEY as a secret'; else echo 'AWS_ACCESS_KEY found'; fi
 
       - name: Check AWS_SECRET_KEY
-        run: if ${{ secrets.AWS_SECRET_KEY }}; then echo 'Please set AWS_SECRET_KEY as a secret'; else echo 'AWS_SECRET_KEY found'; fi
+        run: if [ ${{ secrets.AWS_SECRET_KEY }} ]; then echo 'Please set AWS_SECRET_KEY as a secret'; else echo 'AWS_SECRET_KEY found'; fi
 
   ci_part:
     runs-on: ubuntu-latest
