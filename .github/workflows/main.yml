@@ -1,56 +1,65 @@
 name: CI-CD-Pipeline-to-AWS-ElasticBeastalk
 
 env:
-  S3_BUCKET_NAME      : "cyber-eternal-nodejs-servers"
-  EB_APPLICATION_NAME : "SimpleNodejsServer"
-  EB_ENVIRONMENT_NAME : "Simplenodejsserver-env"
-  DEPLOY_PACKAGE_NAME : "simple_nodejs_server_${{ github.sha }}.zip"
-  AWS_REGION_NAME     : "us-east-1"
-
+  S3_BUCKET_NAME: "cyber-eternal-nodejs-servers"
+  EB_APPLICATION_NAME: "SimpleNodejsServer"
+  EB_ENVIRONMENT_NAME: "Simplenodejsserver-env"
+  DEPLOY_PACKAGE_NAME: "simple_nodejs_server_${{ github.sha }}.zip"
+  AWS_REGION_NAME: "us-east-1"
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
 
   workflow_dispatch:
 
 jobs:
   ci_part:
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-      steps:
+    steps:
       - name: Git clone
         uses: actions/checkout@v2
 
       - name: Create ZIP
-        run : zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git*
+        run: zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git*
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id    :  ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key:  ${{ secrets.AWS_SECRET_KEY }}
-          aws-region           :  ${{ env.AWS_REGION_NAME }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION_NAME }}
 
       - name: Copy Deployment package to the S3 bucket
-        run : aws s3 cp ${{ env.DEPLOY_PACKAGE_NAME }}  s3://${{ env.S3_BUCKET_NAME }}/
+        run: aws s3 cp ${{ env.DEPLOY_PACKAGE_NAME }}  s3://${{ env.S3_BUCKET_NAME }}/
 
       - name: CI finish
-        run : echo "CI Pipeline part Finished successfully!"
+        run: echo "CI Pipeline part Finished successfully!"
+
+  check_secrets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check AWS_ACCESS_KEY
+        run: if ${{ secrets.AWS_ACCESS_KEY }}; then echo 'Please set AWS_ACCESS_KEY as a secret'; else echo 'AWS_ACCESS_KEY found'; fi
+
+      - name: Check AWS_SECRET_KEY
+        run: if ${{ secrets.AWS_SECRET_KEY }}; then echo 'Please set AWS_SECRET_KEY as a secret'; else echo 'AWS_SECRET_KEY found'; fi
 
   cd_part:
     runs-on: ubuntu-latest
-    needs: [ci_part]
+    needs: [ci_part, check_secrets]
     steps:
       - name: Configure my AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id    :  ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key:  ${{ secrets.AWS_SECRET_KEY }}
-          aws-region           :  ${{ env.AWS_REGION_NAME }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION_NAME }}
 
       - name: Create new ElasticBeanstalk Application Version
-        run : |
+        run: |
           aws elasticbeanstalk create-application-version \
           --application-name ${{ env.EB_APPLICATION_NAME }} \
           --source-bundle S3Bucket="${{ env.S3_BUCKET_NAME }}",S3Key="${{ env.DEPLOY_PACKAGE_NAME }}" \
@@ -58,7 +67,7 @@ jobs:
           --description "CoimmitSHA-${{ github.sha }}"
 
       - name: Deploy new ElasticBeanstalk Application Version
-        run : aws elasticbeanstalk update-environment --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --version-label "Ver-${{ github.sha }}"
+        run: aws elasticbeanstalk update-environment --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --version-label "Ver-${{ github.sha }}"
 
       - name: CD finish
-        run : echo "CD Pipeline part Finished successfully!"
+        run: echo "CD Pipeline part Finished successfully!"
